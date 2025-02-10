@@ -1,101 +1,144 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, FlatList } from 'react-native';
 
-const WS_URL = 'wss://jubilant-enigma-wjr4gpqv5rv359xr-8080.app.github.dev/'; // WebSocket server URL
-const USER_ID = `user_${Math.floor(Math.random() * 1000)}`; // Generate a random user ID
+const WS_URL = 'ws://pushtotalk-7xur.onrender.com/';
+const USER_ID = `user_${Math.floor(Math.random() * 1000)}`;
+const COLORS = {
+  primary: '#FF4757',
+  secondary: '#2E2E2E',
+  background: '#1A1A1A',
+  text: '#FFFFFF',
+  active: '#00FF9D',
+};
 
 export default function PushToTalkApp() {
   const [isTalking, setIsTalking] = useState(false);
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  
+  // Animations
+  const buttonScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  const listOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Establish WebSocket connection
     ws.current = new WebSocket(WS_URL);
 
     ws.current.onopen = () => {
-      console.log('Connected to WebSocket');
-      // Send a handshake message with user ID
       ws.current?.send(JSON.stringify({ type: 'handshake', userId: USER_ID }));
+      Animated.timing(listOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
     };
 
     ws.current.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        if (data.type === 'start_talking') {
-          setActiveUsers((prev) => [...new Set([...prev, data.userId])]);
-        } else if (data.type === 'stop_talking') {
-          setActiveUsers((prev) => prev.filter((user) => user !== data.userId));
-        }
+        setActiveUsers(prev => {
+          const newUsers = data.type === 'start_talking' 
+            ? [...prev, data.userId]
+            : prev.filter(user => user !== data.userId);
+          return Array.from(new Set(newUsers));
+        });
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+        console.error('Error parsing message:', error);
       }
     };
 
-    ws.current.onerror = (error) => console.error('WebSocket Error:', error);
-    ws.current.onclose = () => console.log('WebSocket Disconnected');
-
-    return () => {
-      // Close WebSocket connection on component unmount
-      ws.current?.close();
-    };
+    return () => ws.current?.close();
   }, []);
 
-  interface Message {
-    type: 'start_talking' | 'stop_talking';
-    userId: string;
-  }
-
-  const sendMessage = (msg: Message) => {
-    if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(msg));
-    }
+  const startPulse = () => {
+    pulseAnim.setValue(0);
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   };
 
   const handlePressIn = () => {
-    Animated.spring(scaleAnim, { toValue: 0.9, useNativeDriver: true }).start();
+    Animated.spring(buttonScale, { toValue: 0.95, useNativeDriver: true }).start();
+    startPulse();
     setIsTalking(true);
-    sendMessage({ type: 'start_talking', userId: USER_ID });
+    ws.current?.send(JSON.stringify({ type: 'start_talking', userId: USER_ID }));
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
+    Animated.spring(buttonScale, { toValue: 1, useNativeDriver: true }).start();
+    pulseAnim.stopAnimation();
     setIsTalking(false);
-    sendMessage({ type: 'stop_talking', userId: USER_ID });
+    ws.current?.send(JSON.stringify({ type: 'stop_talking', userId: USER_ID }));
   };
+
+  const pulseInterpolation = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.5],
+  });
+
+  const pulseOpacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.5, 0],
+  });
 
   return (
     <View style={styles.container}>
-      {/* Status Indicator */}
-      <View style={styles.statusBar}>
+      <Animated.View style={[styles.statusContainer, { opacity: listOpacity }]}>
         <Text style={styles.statusText}>
-          {activeUsers.length > 0 ? `🎤 Talking: ${activeUsers.join(', ')}` : 'No one is talking'}
+          {activeUsers.length} {activeUsers.length === 1 ? 'Person' : 'People'} Talking
         </Text>
-      </View>
-
-      {/* Push-to-Talk Button */}
-      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-        <TouchableOpacity
-          style={[styles.button, isTalking && styles.buttonActive]}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>
-            {isTalking ? 'Release to Stop' : 'Hold to Talk'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.activeDot} />
       </Animated.View>
 
-      {/* Active Users List */}
-      <View style={styles.userList}>
-        {activeUsers.map((user) => (
-          <View key={user} style={styles.userPill}>
-            <Text style={styles.userText}>🎤 {user}</Text>
-          </View>
-        ))}
+      <View style={styles.buttonContainer}>
+        <Animated.View
+          style={[
+            styles.pulse,
+            {
+              transform: [{ scale: pulseInterpolation }],
+              opacity: pulseOpacity,
+            },
+          ]}
+        />
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            style={[styles.button, isTalking && styles.buttonActive]}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>
+              {isTalking ? 'Speaking...' : 'Hold to Talk'}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
+
+      <Animated.View style={[styles.listContainer, { opacity: listOpacity }]}>
+        <FlatList
+          data={activeUsers}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <View style={styles.userItem}>
+              <View style={styles.userIndicator} />
+              <Text style={styles.userId}>{item}</Text>
+            </View>
+          )}
+          contentContainerStyle={styles.listContent}
+        />
+      </Animated.View>
     </View>
   );
 }
@@ -103,49 +146,91 @@ export default function PushToTalkApp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
+    paddingVertical: 40,
+  },
+  statusContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 16,
+    backgroundColor: COLORS.secondary,
+    marginHorizontal: 24,
+    borderRadius: 16,
+    marginTop: 24,
+  },
+  statusText: {
+    color: COLORS.active,
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  activeDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.active,
+  },
+  buttonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
   button: {
-    backgroundColor: '#2E2E2E',
-    padding: 24,
+    backgroundColor: COLORS.secondary,
+    padding: 32,
     borderRadius: 40,
     borderWidth: 2,
     borderColor: '#3E3E3E',
   },
   buttonActive: {
-    backgroundColor: '#FF4757',
+    backgroundColor: COLORS.primary,
     borderColor: '#FF6B81',
   },
   buttonText: {
-    color: 'white',
-    fontSize: 18,
+    color: COLORS.text,
+    fontSize: 20,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  statusBar: {
+  pulse: {
     position: 'absolute',
-    top: 50,
-    padding: 10,
-    backgroundColor: '#2E2E2E',
-    borderRadius: 20,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 4,
+    borderColor: COLORS.primary,
   },
-  statusText: {
-    color: '#00FF9D',
-    fontSize: 14,
+  listContainer: {
+    height: 200,
+    marginHorizontal: 24,
+    marginBottom: 24,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
+    padding: 16,
   },
-  userList: {
-    position: 'absolute',
-    bottom: 50,
+  listContent: {
+    flexGrow: 1,
+  },
+  userItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  userPill: {
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 4,
     backgroundColor: '#3E3E3E',
-    padding: 8,
-    borderRadius: 20,
-    margin: 4,
   },
-  userText: {
-    color: 'white',
+  userIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.active,
+    marginRight: 12,
+  },
+  userId: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
