@@ -9,10 +9,13 @@ import {
 } from "react-native";
 import { COLORS, WS_EVENTS } from "../../utils/constants";
 
+// TalkButton component: Handles the push-to-talk functionality with animations
 export const TalkButton = ({ isTalking, sendWebSocketMessage, setIsTalking }: any) => {
+  // Animated values for button scaling and pulse effect
   const buttonScale = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
+  // Function to start the pulsing animation
   const startPulse = () => {
     pulseAnim.setValue(0);
     Animated.loop(
@@ -32,37 +35,65 @@ export const TalkButton = ({ isTalking, sendWebSocketMessage, setIsTalking }: an
     ).start();
   };
 
+  // Function to handle press-in event (start talking)
   const handlePressIn = () => {
+    // Shrink button slightly for a press effect
     Animated.spring(buttonScale, {
       toValue: 0.95,
       useNativeDriver: true,
     }).start();
+
+    // Start pulsing animation
     startPulse();
+
+    // Update state and send WebSocket message
     setIsTalking(true);
     sendWebSocketMessage(WS_EVENTS.START_TALKING);
   };
 
+  // Function to handle press-out event (stop talking)
   const handlePressOut = () => {
+    // Restore button to original size
     Animated.spring(buttonScale, { toValue: 1, useNativeDriver: true }).start();
+
+    // Stop the pulsing animation
     pulseAnim.stopAnimation();
+
+    // Update state and send WebSocket message
     setIsTalking(false);
     sendWebSocketMessage(WS_EVENTS.STOP_TALKING);
   };
 
   return (
     <View style={styles.buttonContainer}>
+      {/* Animated pulse effect around the button */}
       <Animated.View
         style={[
           styles.pulse,
-          { transform: [{ scale: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }], opacity: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] }) },
+          {
+            transform: [
+              {
+                scale: pulseAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, 1.5], // Expanding effect
+                }),
+              },
+            ],
+            opacity: pulseAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.5, 0], // Fade-out effect
+            }),
+          },
         ]}
       />
+
+      {/* Animated button */}
       <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
         <TouchableOpacity
           style={[styles.button, isTalking && styles.buttonActive]}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          activeOpacity={0.8}
+          activeOpacity={0.8} // Reduces the opacity when pressed
         >
           <Text style={styles.buttonText}>
             {isTalking ? "Speaking..." : "Hold to Talk"}
@@ -73,6 +104,7 @@ export const TalkButton = ({ isTalking, sendWebSocketMessage, setIsTalking }: an
   );
 };
 
+// Styles for the button and animations
 const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
@@ -87,8 +119,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#3E3E3E",
   },
-  buttonActive: { backgroundColor: COLORS.primary, borderColor: "#FF6B81" },
-  buttonText: { color: COLORS.text, fontSize: 20, fontWeight: "600" },
+  buttonActive: { 
+    backgroundColor: COLORS.primary, 
+    borderColor: "#FF6B81" 
+  },
+  buttonText: { 
+    color: COLORS.text, 
+    fontSize: 20, 
+    fontWeight: "600" 
+  },
   pulse: {
     position: "absolute",
     width: 200,

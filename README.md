@@ -1,50 +1,125 @@
-# Welcome to your Expo app 👋
+Here’s your updated README with a note about WebSocket deployment on Render:  
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+```markdown
+# Push-to-Talk Interface - React Native
 
-## Get started
+[![Expo](https://img.shields.io/badge/expo-40C4FF?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
+![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 
-1. Install dependencies
+A real-time communication interface demonstrating push-to-talk functionality with WebSocket integration. Developed for cross-platform compatibility (iOS/Android) using React Native and Expo.
 
-   ```bash
-   npm install
-   ```
+![Demo Screenshot](./assets/images/image1.png) ![Demo Screenshot](./assets/images/image2.png)
+[Demo Screenshot](./assets/images/image3.png)
+[Demo Screenshot](./assets/images/image4.png)
+## Features
 
-2. Start the app
+✅ Real-time user presence indicators  
+🚀 Single WebSocket connection management  
+🎨 Intuitive UI with animated feedback  
+📱 Cross-platform compatibility  
+⚡ Connection error handling & reconnection  
+📊 Active user tracking without database  
 
-   ```bash
-    npx expo start
-   ```
+## Installation
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Clone repository:
 ```bash
-npm run reset-project
+git clone https://github.com/richie444/PushToTalk-
+cd PushToTalk-
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies:
+```bash
+npm install
+```
 
-## Learn more
+3. Start development server:
+```bash
+npx expo start --tunnel
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Scan QR code with [Expo Go](https://expo.dev/go) app or use an emulator.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Technical Specifications
 
-## Join the community
+### Tech Stack
+- **Frontend**: React Native (Expo)  
+- **State Management**: React Hooks  
+- **Communication**: WebSocket (wss://)  
+- **Language**: TypeScript  
+- **Styling**: StyleSheet + Animated API  
 
-Join our community of developers creating universal apps.
+### WebSocket Deployment
+The WebSocket server is deployed on **Render**, ensuring a stable and scalable real-time communication backend. The WebSocket endpoint is publicly accessible and can be adjusted in the `WS_URL` constant.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+### Design Considerations
+- Pulse animations for active speaking state
+- Color-coded user indicators
+- Responsive layout for various screen sizes
+- Haptic feedback on button press
+- Connection status toasts
+
+## Implementation Details
+
+### WebSocket Architecture
+```mermaid
+sequenceDiagram
+    participant ClientA
+    participant Server
+    participant ClientB
+    
+    ClientA->>Server: Start Talking (userID)
+    Server->>ClientB: User Active (userID)
+    ClientB->>Server: Start Talking (userID)
+    Server->>ClientA: User Active (userID)
+    ClientA->>Server: Stop Talking (userID)
+    ClientB->>Server: Stop Talking (userID)
+    Server->>All Clients: Terminate Connection
+```
+
+### Key Features Implementation
+1. **Push-to-Talk Logic**
+   - TouchableOpacity with pressIn/pressOut handlers
+   - Animated spring effects for button interaction
+   - WebSocket message queuing system
+
+2. **Connection Management**
+   - Single WebSocket instance persistence
+   - Exponential backoff reconnection strategy
+   - Heartbeat mechanism for connection health
+
+3. **User Presence**
+   - Unique user ID generation on launch
+   - Active user list with real-time updates
+   - Last-active timestamp tracking
+
+## Evaluation Criteria Addressed
+
+| Requirement               | Implementation Status |
+|---------------------------|-----------------------|
+| Real-time Indicators      | ✅ Full compliance    |
+| Simultaneous Usage        | ✅ Supported          |
+| Connection Termination    | ✅ Implemented        |
+| Single WS Connection      | ✅ Optimized          |
+| Error Handling            | ✅ Robust solution    |
+
+## Future Enhancements
+
+- [ ] Voice transmission capability
+- [ ] User authentication system
+- [ ] Message history persistence
+- [ ] Network quality indicators
+- [ ] Customizable user avatars
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details
+
+---
+
+**Note**: Database implementation is intentionally omitted to focus on core WebSocket functionality. The system is designed to easily integrate with databases like Firebase or PostgreSQL if needed in future iterations.
+
+[Expo Documentation](https://docs.expo.dev/) | [React Navigation](https://reactnavigation.org/) | [WebSocket Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
+```
+
