@@ -1,6 +1,16 @@
 
 
 A real-time communication interface demonstrating push-to-talk functionality with WebSocket integration. Developed for cross-platform compatibility (iOS/Android) using React Native and Expo.
+<p align="center">
+  <img src="https://github.com/richie444/PushToTalk-/blob/main/assets/images/image1.png?raw=true" width="300">
+  <img src="https://github.com/richie444/PushToTalk-/blob/main/assets/images/image2.png?raw=true" width="300">
+</p>
+<p align="center">
+  <img src="https://github.com/richie444/PushToTalk-/blob/main/assets/images/image3.png?raw=true" width="300">
+  <img src="https://github.com/richie444/PushToTalk-/blob/main/assets/images/image4.png?raw=true" width="300">
+</p>
+
+
 
 
 ## Features
@@ -54,21 +64,7 @@ The WebSocket server is deployed on **Render**, ensuring a stable and scalable r
 
 ## Implementation Details
 
-### WebSocket Architecture
-```mermaid
-sequenceDiagram
-    participant ClientA
-    participant Server
-    participant ClientB
-    
-    ClientA->>Server: Start Talking (userID)
-    Server->>ClientB: User Active (userID)
-    ClientB->>Server: Start Talking (userID)
-    Server->>ClientA: User Active (userID)
-    ClientA->>Server: Stop Talking (userID)
-    ClientB->>Server: Stop Talking (userID)
-    Server->>All Clients: Terminate Connection
-```
+
 
 ### Key Features Implementation
 1. **Push-to-Talk Logic**
