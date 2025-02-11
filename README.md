@@ -1,10 +1,4 @@
-Here’s your updated README with a note about WebSocket deployment on Render:  
 
-```markdown
-# Push-to-Talk Interface - React Native
-
-[![Expo](https://img.shields.io/badge/expo-40C4FF?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
-![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 
 A real-time communication interface demonstrating push-to-talk functionality with WebSocket integration. Developed for cross-platform compatibility (iOS/Android) using React Native and Expo.
 
