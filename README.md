@@ -8,9 +8,13 @@ Here’s your updated README with a note about WebSocket deployment on Render:
 
 A real-time communication interface demonstrating push-to-talk functionality with WebSocket integration. Developed for cross-platform compatibility (iOS/Android) using React Native and Expo.
 
-![Demo Screenshot](./assets/images/image1.png) ![Demo Screenshot](./assets/images/image2.png)
-[Demo Screenshot](./assets/images/image3.png)
-[Demo Screenshot](./assets/images/image4.png)
+<img src="https://raw.githubusercontent.com/richie444/PushToTalk-/main/assets/images/image1.png" width="500">
+
+
+![Image 1](https://raw.githubusercontent.com/richie444/PushToTalk-/main/assets/images/image1.png)
+
+![Image 2](https://raw.githubusercontent.com/richie444/PushToTalk-/main/assets/images/image2.png)
+
 ## Features
 
 ✅ Real-time user presence indicators  
